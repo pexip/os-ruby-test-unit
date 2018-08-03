@@ -1,8 +1,9 @@
 Source: ruby-test-unit
 Section: ruby
 Priority: optional
-Maintainer: Debian Ruby Extras Maintainers <pkg-ruby-extras-maintainers@lists.alioth.debian.org>
-Uploaders: Cédric Boutillier <boutil@debian.org>
+Maintainer: Pexip AS <packaging@pexip.com>
+XSBC-Pexip-Original-Maintainer: Debian Ruby Extras Maintainers <pkg-ruby-extras-maintainers@lists.alioth.debian.org>
+XSBC-Pexip-Original-Uploaders: Cédric Boutillier <boutil@debian.org>
 Build-Depends: debhelper (>= 9),
                gem2deb,
                ruby-power-assert
@@ -12,6 +13,7 @@ Vcs-Browser: https://anonscm.debian.org/cgit/pkg-ruby-extras/ruby-test-unit.git
 Homepage: http://test-unit.github.io/
 Testsuite: autopkgtest-pkg-ruby
 XS-Ruby-Versions: all
+XS-Pexip-Upstream: http://ftp.debian.org/debian/ stretch
 
 Package: ruby-test-unit
 Architecture: all

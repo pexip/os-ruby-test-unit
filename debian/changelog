@@ -1,3 +1,9 @@
+ruby-test-unit (3.1.7-2pexip1) pexip; urgency=medium
+
+  * Prepare Pexip packaging
+
+ -- John-Mark Bell <jmb@pexip.com>  Fri, 03 Aug 2018 18:57:11 +0000
+
 ruby-test-unit (3.1.7-2) unstable; urgency=medium
 
   * Team upload.
