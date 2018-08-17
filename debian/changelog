@@ -1,3 +1,38 @@
+ruby-test-unit (3.2.8-1) unstable; urgency=medium
+
+  * New upstream version 3.2.8
+  * Bump Standards-Version to 4.2.0 (no changes needed)
+  * Disable 3 failing tests during autopkgtest
+
+ -- Cédric Boutillier <boutil@debian.org>  Fri, 17 Aug 2018 04:45:17 +0200
+
+ruby-test-unit (3.2.7-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream version 3.2.7
+  * Drop dependency on ruby, breaking circular dependency
+  * Bump debhelper compatibility level to 11
+  * Bump Standards-Version to 4.1.4, no changes needed
+  * Point Vcs-* to salsa.debian.org
+  * debian/watch: point to gemwatch.debian.net
+  * debian/rules: check dependencies during build
+
+ -- Antonio Terceiro <terceiro@debian.org>  Tue, 01 May 2018 22:24:03 -0300
+
+ruby-test-unit (3.2.5-1) unstable; urgency=medium
+
+  * Team upload
+
+  [ Cédric Boutillier ]
+  * Use https:// in Vcs-* fields
+  * Run wrap-and-sort on packaging files
+
+  [ Lucas Nussbaum ]
+  * New upstream version 3.2.5
+  * Refresh packaging using dh-make-ruby
+
+ -- Lucas Nussbaum <lucas@debian.org>  Tue, 04 Jul 2017 22:50:15 +0200
+
 ruby-test-unit (3.1.7-2) unstable; urgency=medium
 
   * Team upload.

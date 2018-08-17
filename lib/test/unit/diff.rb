@@ -3,9 +3,9 @@
 # Copyright (c) 2001-2008 Python Software Foundation; All Rights Reserved
 # Copyright (c) 2008-2011 Kouhei Sutou; All Rights Reserved
 #
-# It is free software, and is distributed under the Ruby
-# license and/or the PSF license. See the COPYING file and
-# PSFL file.
+# It is free software, and is distributed under the Ruby license, the
+# PSF license and/or LGPLv2.1 or later. See the COPYING file, the PSFL
+# file and the LGPL file.
 
 module Test
   module Unit
@@ -269,7 +269,7 @@ module Test
 
         private
         def tag(mark, contents)
-          contents.collect {|content| "#{mark}#{content}"}
+          contents.collect {|content| mark + content}
         end
       end
 
@@ -450,7 +450,7 @@ module Test
 
         def tag(mark, contents)
           contents.each do |content|
-            @result << "#{mark}#{content}"
+            @result << (mark + content)
           end
         end
 
@@ -577,15 +577,15 @@ module Test
             to_width = compute_width(to_line, to_start, to_end)
             case tag
             when :replace
-              from_tags << "^" * from_width
-              to_tags << "^" * to_width
+              from_tags += "^" * from_width
+              to_tags += "^" * to_width
             when :delete
-              from_tags << "-" * from_width
+              from_tags += "-" * from_width
             when :insert
-              to_tags << "+" * to_width
+              to_tags += "+" * to_width
             when :equal
-              from_tags << " " * from_width
-              to_tags << " " * to_width
+              from_tags += " " * from_width
+              to_tags += " " * to_width
             else
               raise "unknown tag: #{tag}"
             end

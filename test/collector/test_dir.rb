@@ -15,7 +15,7 @@ module Test
               @contents = {'.' => self, '..' => parent}
               instance_eval(&block) if(block)
             end
-            
+
             def file(name, contents)
               @contents[name] = contents
             end
@@ -74,7 +74,7 @@ module Test
           end
 
           attr_reader :object_space
-          
+
           def initialize(&block)
             @root = Directory.new('/', self, &block)
             @pwd = @root
@@ -295,7 +295,7 @@ module Test
           assert_raises(LoadError) do
             fs.require('bogus')
           end
-          
+
           assert(fs.require('test_class1.rb'))
           assert(!fs.require('test_class1.rb'))
           c = []
@@ -345,6 +345,7 @@ module Test
         def create_test(name)
           t = Class.new(TestCase)
           t.class_eval <<-EOC
+            self.test_order = :alphabetic
             def self.name
               "T\#{#{name}}"
             end
@@ -373,7 +374,7 @@ module Test
           expected = TestSuite.new('test_1.rb')
           expected << @t1.suite
           assert_equal(expected, @c.collect('test_1.rb'))
-          
+
           expected = TestSuite.new('t4.rb')
           expected << @t4.suite
           assert_equal(expected, @c.collect('t4.rb'))
