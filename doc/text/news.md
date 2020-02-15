@@ -1,5 +1,227 @@
 # News
 
+## 3.2.8 - 2018-05-13 {#version-3-2-8}
+
+### Improvements
+
+  * [UI][console]: Changed to put code snippet before backtrace on
+    reverse mode.
+
+## 3.2.7 - 2017-12-12 {#version-3-2-7}
+
+### Improvements
+
+  * Added source code link to gemspec.
+    [GitHub#157][Patch by Grey Baker]
+
+  * Changed to use SVG image for badges in README.
+    [GitHub#158][Patch by Olle Jonsson]
+
+  * [UI][console]: Added `--reverse-output` option to output fault
+    details in reverse like Ruby 2.5. It's enabled by default only for
+    tty output.
+
+### Fixes
+
+  * Fixed a typo.
+    [GitHub#156][Patch by masa kunikata]
+
+  * [UI][console]: Fixed a bug that broken align in verbose mode.
+
+### Thanks
+
+  * masa kunikata
+
+  * Grey Baker
+
+  * Olle Jonsson
+
+## 3.2.6 - 2017-09-21 {#version-3-2-6}
+
+### Improvements
+
+  * Changed test file require failure to error from omission.
+    [GitHub#154][Patch by naofumi-fujii]
+
+### Thanks
+
+  * naofumi-fujii
+
+## 3.2.5 - 2017-06-24 {#version-3-2-5}
+
+### Improvements
+
+  * Supported `--enable-frozen-string-literal` `ruby` option.
+    [GitHub#149][Reported by Pat Allan]
+
+### Thanks
+
+  * Pat Allan
+
+## 3.2.4 - 2017-05-23 {#version-3-2-4}
+
+### Improvements
+
+  * Updated tests for Ruby 2.4. [GitHUb#136][Patch by Kazuki Tsujimoto]
+
+  * Supported power\_assert 1.0.0. [GitHub#137][Patch by Kazuki Tsujimoto]
+
+  * Added the getting started document.
+    [GitHub#139][GitHub#141][Patch by Hiroyuki Sato]
+
+  * Added the document for `attribute`.
+    [GitHub#143][Patch by Fumiaki MATSUSHIMA]
+
+  * Improved a link for GitHub. [GitHub#144][Patch by rochefort]
+
+  * Updated `.travis.yml`. [GitHub#145][Patch by Jun Aruga]
+
+### Fixes
+
+  * Fixed a contributor name. [GitHub#131][Patch by Akira Matsuda]
+
+  * Fixed typos in document. [GitHub#132][Patch by Akira Matsuda]
+
+  * Fixed typos in document. [GitHub#134][Patch by Yuji Yaginuma]
+
+  * Fixed a bug that data label with "(" isn't supported.
+    [GitHub#135][Reported by Kazuki Tsujimoto]
+
+  * Fixed assertion message in English.
+    [GitHub#133][Reported by Khalil Fazal]
+
+  * Fixed a typo in typo fix. [GitHub#138][Patch by kami]
+
+  * Fixed a bug that target location finder may return wrong
+    location. [GitHub#146][Patch by Yuki Ito]
+
+  * Fixed a bug that `--no-show-detail-immediately` raises an error.
+    [GitHub#147][Reported by MSP-Greg]
+
+### Thanks
+
+  * Akira Matsuda
+
+  * Yuji Yaginuma
+
+  * Kazuki Tsujimoto
+
+  * Khalil Fazal
+
+  * kami
+
+  * Hiroyuki Sato
+
+  * Fumiaki MATSUSHIMA
+
+  * rochefort
+
+  * Jun Aruga
+
+  * Yuki Ito
+
+  * MSP-Greg
+
+## 3.2.3 - 2016-11-25 {#version-3-2-3}
+
+### Fixes
+
+  * Fixed a bug that `--order` isn't applied.
+    [GitHub#129][Reported by Vít Ondruch]
+
+### Thanks
+
+  * Vít Ondruch
+
+## 3.2.2 - 2016-11-02 {#version-3-2-2}
+
+### Improvements
+
+  * Improved Travis CI configuration.
+    [GitHub#123][Patch by Ryunosuke Sato]
+
+  * Supported Java native exception.
+    [GitHub#126][Reported by Bob Saveland]
+
+### Fixes
+
+  * doc: Fixed markup. [GitHub#127][Patch by Tomohiro Hashidate]
+
+  * Fixed a bug that `--location=LINE` may not detect a test when
+    fixtures are defined before any tests:
+
+        1 class MyTestCase < Test::Unit::TestCase
+        2   setup do
+        3   end
+        4
+        5   test "xxx" do
+        6   end
+        7 end
+
+    `--location=5` couldn't find the `xxx` test.
+
+    [Reported by Ryota Sasabe]
+
+### Thanks
+
+  * Ryunosuke Sato
+
+  * Tomohiro Hashidate
+
+  * Bob Saveland
+
+  * Ryota Sasabe
+
+## 3.2.1 - 2016-07-19 {#version-3-2-1}
+
+### Improvements
+
+  * Clarified lib/test/unit/diff.rb license. It's a triple license of
+    the Ruby license, PSF license and LGPLv2.1 or later.
+    [Reported by Luisa Pace]
+
+  * Reported norification when data driven test doesn't have
+    parameter.
+    [GitHub#122][Reported by Satoshi "Moris" Tagomori]
+
+### Thanks
+
+  * Luisa Pace
+
+  * Satoshi "Moris" Tagomori
+
+## 3.2.0 - 2016-06-12 {#version-3-2-0}
+
+### Improvements
+
+  * Supported rxvt family terminals as color available terminals.
+    [GitHub#121][Reported by Ippei Kishida]
+
+### Thanks
+
+  * Ippei Kishida
+
+## 3.1.9 - 2016-05-20 {#version-3-1-9}
+
+### Fixes
+
+  * Fixed conflict with test-unit-power_assert.
+    [GitHub#120][Patch by Kazuki Tsujimoto]
+
+  * Fixed a bug that path in `$LOAD_PATH` may be removed.
+
+### Thanks
+
+  * Kazuki Tsujimoto
+
+## 3.1.8 - 2016-03-19 {#version-3-1-8}
+
+### Improvements
+
+  * Added `--stop-on-failure` command line option. With this option,
+    running test suite is stopped immediately when one test is failed
+    or an error is raised in one test.
+
 ## 3.1.7 - 2016-01-17 {#version-3-1-7}
 
 ### Fixes
@@ -473,7 +695,7 @@ It's a release for minitest compatibility and bug fix.
 
   * Allowed use of test for inheritance in ActionController::TestCase.
     [GitHub#42] [Patch by David Rasch]
-  * Ensured evaluating at_exist block in top level.
+  * Ensured evaluating at_exit block in top level.
     In IRB context, exit() specifies irb_exit().
     [test-unit-users-en:00089] [Reported by Daniel Berger]
   * Fixed a bug that decoration style description is ignored.

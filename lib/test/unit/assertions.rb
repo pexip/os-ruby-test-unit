@@ -153,8 +153,8 @@ module Test
               assertion_message = message
             else
               error_message = "assertion message must be String, Proc or "
-              error_message << "#{AssertionMessage}: "
-              error_message << "<#{message.inspect}>(<#{message.class}>)"
+              error_message += "#{AssertionMessage}: "
+              error_message += "<#{message.inspect}>(<#{message.class}>)"
               raise ArgumentError, error_message, filter_backtrace(caller)
             end
             assertion_message ||= build_message(message,
@@ -192,8 +192,8 @@ module Test
             assertion_message = message
           else
             error_message = "assertion message must be String, Proc or "
-            error_message << "#{AssertionMessage}: "
-            error_message << "<#{message.inspect}>(<#{message.class}>)"
+            error_message += "#{AssertionMessage}: "
+            error_message += "<#{message.inspect}>(<#{message.class}>)"
             raise ArgumentError, error_message, filter_backtrace(caller)
           end
           assert_block("refute should not be called with a block.") do
@@ -334,7 +334,7 @@ EOT
             "<#{value}>"
           end
           full_message = build_message(message, <<EOT, object, klass_message, object.class)
-<?> expected to be instance_of\\?
+<?> was expected to be instance_of\\?
 ? but was
 <?>.
 EOT
@@ -362,7 +362,7 @@ EOT
           else
             klasses = [klass]
           end
-          assert_block("The first parameter to assert_not_instance_of should be " <<
+          assert_block("The first parameter to assert_not_instance_of should be " +
                        "a Class or an Array of Class.") do
             klasses.all? {|k| k.is_a?(Class)}
           end
@@ -370,7 +370,7 @@ EOT
             "<#{value}>"
           end
           full_message = build_message(message,
-                                       "<?> expected to not be instance_of\\?\n" +
+                                       "<?> was expected to not be instance_of\\?\n" +
                                        "? but was.",
                                        object,
                                        klass_message)
@@ -392,7 +392,7 @@ EOT
       #   assert_nil [1, 2].uniq!
       def assert_nil(object, message="")
         full_message = build_message(message, <<EOT, object)
-<?> expected to be nil.
+<?> was expected to be nil.
 EOT
         assert_block(full_message) { object.nil? }
       end
@@ -421,7 +421,7 @@ EOT
             "<#{value}>"
           end
           full_message = build_message(message,
-                                       "<?> expected to be kind_of\\?\n" +
+                                       "<?> was expected to be kind_of\\?\n" +
                                        "? but was\n" +
                                        "<?>.",
                                        object,
@@ -459,7 +459,7 @@ EOT
             "<#{value}>"
           end
           full_message = build_message(message,
-                                       "<?> expected to not be kind_of\\?\n" +
+                                       "<?> was expected to not be kind_of\\?\n" +
                                        "? but was.",
                                        object,
                                        klass_message)
@@ -537,7 +537,8 @@ EOT
             else
               pattern
           end
-          full_message = build_message(message, "<?> expected to be =~\n<?>.",
+          full_message = build_message(message,
+                                       "<?> was expected to be =~\n<?>.",
                                        pattern, string)
           assert_block(full_message) { pattern =~ string }
         end
@@ -553,7 +554,7 @@ EOT
       def assert_same(expected, actual, message="")
         full_message = build_message(message, <<EOT, expected, expected.__id__, actual, actual.__id__)
 <?>
-with id <?> expected to be equal\\? to
+with id <?> was expected to be equal\\? to
 <?>
 with id <?>.
 EOT
@@ -572,7 +573,7 @@ EOT
           full_message = build_message(nil, "<?>\ngiven as the operator for #assert_operator must be a Symbol or #respond_to\\?(:to_str).", operator)
           assert_block(full_message){operator.kind_of?(Symbol) || operator.respond_to?(:to_str)}
           full_message = build_message(message, <<EOT, object1, AssertionMessage.literal(operator), object2)
-<?> expected to be
+<?> was expected to be
 ?
 <?>.
 EOT
@@ -595,7 +596,7 @@ EOT
           full_message = build_message(nil, "<?>\ngiven as the operator for #assert_not_operator must be a Symbol or #respond_to\\?(:to_str).", operator)
           assert_block(full_message){operator.kind_of?(Symbol) || operator.respond_to?(:to_str)}
           full_message = build_message(message, <<EOT, object1, AssertionMessage.literal(operator), object2)
-<?> expected to not be
+<?> was expected to not be
 ?
 <?>.
 EOT
@@ -635,7 +636,6 @@ EOT
               raise
             end
           end
-          nil
         end
       end
 
@@ -656,7 +656,7 @@ EOT
       def assert_not_same(expected, actual, message="")
         full_message = build_message(message, <<EOT, expected, expected.__id__, actual, actual.__id__)
 <?>
-with id <?> expected to not be equal\\? to
+with id <?> was expected to not be equal\\? to
 <?>
 with id <?>.
 EOT
@@ -674,7 +674,9 @@ EOT
       # @example
       #   assert_not_equal 'some string', 5
       def assert_not_equal(expected, actual, message="")
-        full_message = build_message(message, "<?> expected to be != to\n<?>.", expected, actual)
+        full_message = build_message(message,
+                                     "<?> was expected to be != to\n<?>.",
+                                     expected, actual)
         assert_block(full_message) { expected != actual }
       end
 
@@ -689,7 +691,9 @@ EOT
       # @example
       #   assert_not_nil '1 two 3'.sub!(/two/, '2')
       def assert_not_nil(object, message="")
-        full_message = build_message(message, "<?> expected to not be nil.", object)
+        full_message = build_message(message,
+                                     "<?> was expected to not be nil.",
+                                     object)
         assert_block(full_message){!object.nil?}
       end
 
@@ -710,7 +714,7 @@ EOT
                              "<REGEXP> in assert_not_match(<REGEXP>, ...) " +
                              "should be a Regexp.")
           full_message = build_message(message,
-                                       "<?> expected to not match\n<?>.",
+                                       "<?> was expected to not match\n<?>.",
                                        regexp, string)
           assert_block(full_message) { regexp !~ string }
         end
@@ -814,7 +818,7 @@ EOT
             tag = extractor.extract_tag
             raise if tag.nil?
             full_message = build_message(message,
-                                         "<?> expected to be thrown but\n" +
+                                         "<?> was expected to be thrown but\n" +
                                          "<?> was thrown.",
                                          expected_object, tag)
             flunk(full_message)
@@ -922,12 +926,12 @@ EOT
                                    message, options={})
         if options[:negative_assertion]
           format = <<-EOT
-<?> -/+ <?> expected to not include
+<?> -/+ <?> was expected to not include
 <?>.
 EOT
         else
           format = <<-EOT
-<?> -/+ <?> expected to include
+<?> -/+ <?> was expected to include
 <?>.
 EOT
         end
@@ -961,7 +965,7 @@ EOT
         end
 
         if relation_format
-          format << <<-EOT
+          format += <<-EOT
 
 Relation:
 #{relation_format}
@@ -1061,12 +1065,12 @@ EOT
 
         if options[:negative_assertion]
           format = <<-EOT
-<?> -/+ (<?> * <?>)[?] expected to not include
+<?> -/+ (<?> * <?>)[?] was expected to not include
 <?>.
 EOT
         else
           format = <<-EOT
-<?> -/+ (<?> * <?>)[?] expected to include
+<?> -/+ (<?> * <?>)[?] was expected to include
 <?>.
 EOT
         end
@@ -1099,7 +1103,7 @@ EOT
         end
 
         if relation_format
-          format << <<-EOT
+          format += <<-EOT
 
 Relation:
 #{relation_format}
@@ -1131,7 +1135,7 @@ EOT
                           "assert_send requires at least a receiver " +
                           "and a message name")
           format = <<EOT
-<?> expected to respond to
+<?> was expected to respond to
 <?(*?)> with a true value but was
 <?>.
 EOT
@@ -1171,7 +1175,7 @@ EOT
                           "assert_not_send requires at least a receiver " +
                           "and a message name")
           format = <<EOT
-<?> expected to respond to
+<?> was expected to respond to
 <?(*?)> with not a true value but was
 <?>.
 EOT
@@ -1261,7 +1265,7 @@ EOT
           end
           template = <<-EOT
 <?> #{operator} <?> should be true
-<?> expected #{operator_description}
+<?> was expected to be #{operator_description}
 <?>.
 EOT
           full_message = build_message(message, template,
@@ -1306,7 +1310,7 @@ EOT
       def assert_raise_message(expected, message=nil)
         _wrap_assertion do
           full_message = build_message(message,
-                                       "<?> exception message expected " +
+                                       "<?> exception message was expected " +
                                        "but none was thrown.",
                                        expected)
           exception = nil
@@ -1476,7 +1480,7 @@ EOT
       def assert_path_exist(path, message=nil)
         _wrap_assertion do
           failure_message = build_message(message,
-                                          "<?> expected to exist",
+                                          "<?> was expected to exist",
                                           path)
           assert_block(failure_message) do
             File.exist?(path)
@@ -1494,7 +1498,7 @@ EOT
       def assert_path_not_exist(path, message=nil)
         _wrap_assertion do
           failure_message = build_message(message,
-                                          "<?> expected to not exist",
+                                          "<?> was expected to not exist",
                                           path)
           assert_block(failure_message) do
             not File.exist?(path)
@@ -1515,7 +1519,7 @@ EOT
           assert_respond_to(collection, :include?,
                             "The collection must respond to :include?.")
           full_message = build_message(message,
-                                       "<?> expected to include\n<?>.",
+                                       "<?> was expected to include\n<?>.",
                                        collection,
                                        object)
           assert_block(full_message) do
@@ -1542,7 +1546,7 @@ EOT
           assert_respond_to(collection, :include?,
                             "The collection must respond to :include?.")
           full_message = build_message(message,
-                                       "<?> expected to not include\n<?>.",
+                                       "<?> was expected to not include\n<?>.",
                                        collection,
                                        object)
           assert_block(full_message) do
@@ -1576,7 +1580,7 @@ EOT
           assert_respond_to(object, :empty?,
                             "The object must respond to :empty?.")
           full_message = build_message(message,
-                                       "<?> expected to be empty.",
+                                       "<?> was expected to be empty.",
                                        object)
           assert_block(full_message) do
             object.empty?
@@ -1599,7 +1603,7 @@ EOT
           assert_respond_to(object, :empty?,
                             "The object must respond to :empty?.")
           full_message = build_message(message,
-                                       "<?> expected to not be empty.",
+                                       "<?> was expected to not be empty.",
                                        object)
           assert_block(full_message) do
             not object.empty?
@@ -1667,7 +1671,7 @@ EOT
           expected = assert_exception_helper.expected_exceptions
           actual_exception = nil
           full_message = build_message(message,
-                                       "<?> exception expected " +
+                                       "<?> exception was expected " +
                                        "but none was thrown.",
                                        expected)
           assert_block(full_message) do
@@ -1776,7 +1780,7 @@ EOT
 
               if Diff.need_fold?(diff)
                 folded_diff = Diff.folded_readable(from, to)
-                diff << "\n\nfolded diff:\n#{folded_diff}"
+                diff += "\n\nfolded diff:\n#{folded_diff}"
               end
 
               diff
@@ -1790,9 +1794,9 @@ EOT
             inspector = Inspector.new(object)
             if use_pp
               begin
-                require 'pp' unless defined?(PP)
+                require "pp" unless defined?(PP)
                 begin
-                  return PP.pp(inspector, '').chomp
+                  return PP.pp(inspector, String.new).chomp
                 rescue NameError
                 end
               rescue LoadError
@@ -2041,26 +2045,26 @@ EOT
             expanded_template = ""
             @parts.each do |part|
               if part == '?'
-                encoding_safe_concat(expanded_template, params.shift)
+                param = params.shift
+                if Object.const_defined?(:Encoding)
+                  expanded_template += concatenatable(param,
+                                                      expanded_template.encoding)
+                else
+                  expanded_template += param
+                end
               else
-                expanded_template << part.gsub(/\\\?/m, '?')
+                expanded_template += part.gsub(/\\\?/m, '?')
               end
             end
             expanded_template
           end
 
           private
-          if Object.const_defined?(:Encoding)
-            def encoding_safe_concat(buffer, parameter)
-              if Encoding.compatible?(buffer, parameter)
-                buffer << parameter
-              else
-                buffer << parameter.dup.force_encoding(buffer.encoding)
-              end
-            end
-          else
-            def encoding_safe_concat(buffer, parameter)
-              buffer << parameter
+          def concatenatable(text, encoding)
+            if Encoding.compatible?(text, encoding)
+              text
+            else
+              text.dup.force_encoding(encoding)
             end
           end
         end
@@ -2170,17 +2174,43 @@ EOT
           expected_exceptions.each do |exception_type|
             if exception_type.instance_of?(Module)
               exception_modules << exception_type
-            elsif exception_type.is_a?(Exception)
+            elsif exception_object?(exception_type)
               exception_objects << exception_type
-            else
-              @test_case.__send__(:assert,
-                                  Exception >= exception_type,
-                                  "Should expect a class of exception, " +
-                                  "#{exception_type}")
+            elsif exception_class?(exception_type)
               exception_classes << exception_type
+            else
+              full_message =
+                @test_case.__send__(:build_message,
+                                    nil,
+                                    "<?> must be " +
+                                    "a subclass of Exception, " +
+                                    "an object of Exception subclasses " +
+                                    "or a Module",
+                                    exception_type)
+              @test_case.flunk(full_message)
             end
           end
           [exception_classes, exception_modules, exception_objects]
+        end
+
+        def exception_object?(exception_type)
+          return true if exception_type.is_a?(Exception)
+
+          if Object.const_defined?(:Java)
+            return true if exception_type.is_a?(Java::JavaLang::Throwable)
+          end
+
+          false
+        end
+
+        def exception_class?(exception_type)
+          return true if exception_type <= Exception
+
+          if Object.const_defined?(:Java)
+            return true if exception_type <= Java::JavaLang::Throwable
+          end
+
+          false
         end
 
         def expected_class?(actual_exception, equality)

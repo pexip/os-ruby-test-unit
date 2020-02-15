@@ -465,9 +465,6 @@ module Test
           end
         end
 
-        assert_equal(["test_1", "test_a", "test_z"],
-                     test_case.suite.tests.collect {|test| test.method_name})
-
         test_case.test_order = :defined
         assert_equal(["test_z", "test_1", "test_a"],
                      test_case.suite.tests.collect {|test| test.method_name})
@@ -513,6 +510,8 @@ module Test
 
       def test_redefine_method
         test_case = Class.new(Test::Unit::TestCase) do
+          self.test_order = :alphabetic
+
           def test_name
           end
           alias_method :test_name2, :test_name
@@ -541,6 +540,23 @@ module Test
         assert_not_predicate(test, :valid?)
         test.assign_test_data("label1", :test_data1)
         assert_predicate(test, :valid?)
+      end
+
+      def test_data_driven_test_without_parameter
+        test_case = Class.new(TestCase) do
+          data("label" => "value")
+          def test_without_parameter
+          end
+        end
+
+        suite = test_case.suite
+        assert_equal(["test_without_parameter"],
+                     suite.tests.collect {|test| test.method_name})
+        result = TestResult.new
+        suite.run(result) {}
+        assert_equal("1 tests, 0 assertions, 0 failures, " +
+                     "0 errors, 0 pendings, 0 omissions, 1 notifications",
+                     result.summary)
       end
 
       private
@@ -734,6 +750,21 @@ module Test
                              parent_test_case.test_defined?(:line => line_child),
                              child_test_case.test_defined?(:line => line_child),
                            ])
+            end
+
+            def test_with_setup
+              line = nil
+              test_case = Class.new(TestCase) do
+                setup do
+                end
+
+                line = __LINE__; test "with setup" do
+                end
+              end
+              assert do
+                test_case.test_defined?(:line => line,
+                                        :method_name => "test: with setup")
+              end
             end
           end
         end
@@ -980,6 +1011,8 @@ module Test
               @parent_test_case = Class.new(TestCase) do
                 extend CallLogger
 
+                self.test_order = :alphabetic
+
                 class << self
                   def startup
                     called << :startup_parent
@@ -1163,6 +1196,80 @@ module Test
             end
             assert_equal([:startup, :shutdown],
                          test_case.called)
+          end
+
+          class TestName < self
+            def test_no_data
+              test_case = Class.new(TestCase) do
+                class << self
+                  def name
+                    "TestCase"
+                  end
+                end
+
+                def test_nothing
+                end
+              end
+
+              test = test_case.new("test_nothing")
+              assert_equal("test_nothing(TestCase)",
+                           test.name)
+            end
+
+            def test_data
+              test_case = Class.new(TestCase) do
+                class << self
+                  def name
+                    "TestCase"
+                  end
+                end
+
+                def test_nothing
+                end
+              end
+
+              test = test_case.new("test_nothing")
+              test.assign_test_data("(nil)", nil)
+              assert_equal("test_nothing[(nil)](TestCase)",
+                           test.name)
+            end
+          end
+
+          class TestLocalName < self
+            def test_no_data
+              test_case = Class.new(TestCase) do
+                class << self
+                  def name
+                    "TestCase"
+                  end
+                end
+
+                def test_nothing
+                end
+              end
+
+              test = test_case.new("test_nothing")
+              assert_equal("test_nothing",
+                           test.local_name)
+            end
+
+            def test_data
+              test_case = Class.new(TestCase) do
+                class << self
+                  def name
+                    "TestCase"
+                  end
+                end
+
+                def test_nothing
+                end
+              end
+
+              test = test_case.new("test_nothing")
+              test.assign_test_data("(nil)", nil)
+              assert_equal("test_nothing[(nil)]",
+                           test.local_name)
+            end
           end
         end
       end

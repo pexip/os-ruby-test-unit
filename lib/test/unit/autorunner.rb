@@ -139,6 +139,7 @@ module Test
       attr_accessor :default_test_paths
       attr_accessor :pattern, :exclude, :base, :workdir
       attr_accessor :color_scheme, :listeners
+      attr_writer :stop_on_failure
       attr_writer :runner, :collector
 
       def initialize(standalone)
@@ -153,6 +154,7 @@ module Test
         @default_arguments = []
         @workdir = nil
         @listeners = []
+        @stop_on_failure = false
         config_file = "test-unit.yml"
         if File.exist?(config_file)
           load_config(config_file)
@@ -160,6 +162,10 @@ module Test
           load_global_config
         end
         yield(self) if block_given?
+      end
+
+      def stop_on_failure?
+        @stop_on_failure
       end
 
       def prepare
@@ -183,7 +189,7 @@ module Test
       def options
         @options ||= OptionParser.new do |o|
           o.banner = "Test::Unit automatic runner."
-          o.banner << "\nUsage: #{$0} [options] [-- untouched arguments]"
+          o.banner += "\nUsage: #{$0} [options] [-- untouched arguments]"
 
           o.on("-r", "--runner=RUNNER", RUNNERS,
                "Use the given RUNNER.",
@@ -240,10 +246,7 @@ module Test
             name = (%r{\A/(.*)/\Z} =~ name ? Regexp.new($1) : name)
             @filters << lambda do |test|
               return true if name === test.method_name
-              test_name_without_class_name = test.name.gsub(/\(.+?\)\z/, "")
-              if test_name_without_class_name != test.method_name
-                return true if name === test_name_without_class_name
-              end
+              return true if name === test.local_name
               false
             end
           end
@@ -361,6 +364,12 @@ module Test
             assertion_message_class.max_diff_target_string_size = size
           end
 
+          o.on("--[no-]stop-on-failure",
+               "Stops immediately on the first non success test",
+               "(#{@stop_on_failure})") do |boolean|
+            @stop_on_failure = boolean
+          end
+
           ADDITIONAL_OPTIONS.each do |option_builder|
             option_builder.call(self, o)
           end
@@ -419,6 +428,9 @@ module Test
         @runner_options[:color_scheme] ||= @color_scheme
         @runner_options[:listeners] ||= []
         @runner_options[:listeners].concat(@listeners)
+        if @stop_on_failure
+          @runner_options[:listeners] << StopOnFailureListener.new
+        end
         change_work_directory do
           runner.run(suite, @runner_options).passed?
         end
@@ -502,6 +514,14 @@ module Test
           test.class.test_defined?(:path => path,
                                    :line => line,
                                    :method_name => test.method_name)
+        end
+      end
+
+      class StopOnFailureListener
+        def attach_to_mediator(mediator)
+          mediator.add_listener(TestResult::FINISHED) do |result|
+            result.stop unless result.passed?
+          end
         end
       end
     end

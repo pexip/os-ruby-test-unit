@@ -37,49 +37,70 @@ module Test
     # You can run two hooks before/after a TestCase run.
     #
     # Example:
-    #   class TestMyClass < Test::Unit::TestCase
-    #     class << self
-    #       def startup
+    #
+    #     class TestMyClass < Test::Unit::TestCase
+    #       class << self
+    #         def startup
+    #           ...
+    #         end
+    #
+    #         def shutdown
+    #           ...
+    #         end
+    #       end
+    #
+    #       def setup
     #         ...
     #       end
     #
-    #       def shutdown
+    #       def cleanup
+    #         ...
+    #       end
+    #
+    #       def teardown
+    #         ...
+    #       end
+    #
+    #       def test_my_method1
+    #         ...
+    #       end
+    #
+    #       def test_my_method2
     #         ...
     #       end
     #     end
-    #
-    #     def setup
-    #       ...
-    #     end
-    #
-    #     def cleanup
-    #       ...
-    #     end
-    #
-    #     def teardown
-    #       ...
-    #     end
-    #
-    #     def test_my_method1
-    #       ...
-    #     end
-    #
-    #     def test_my_method2
-    #       ...
-    #     end
-    #   end
     #
     # Here is a call order:
-    # * startup
-    # * setup
-    # * test_my_method1
-    # * cleanup
-    # * teardown
-    # * setup
-    # * test_my_method2
-    # * cleanup
-    # * teardown
-    # * shutdown
+    #
+    # 1. startup
+    # 1. setup
+    # 1. test_my_method1
+    # 1. cleanup
+    # 1. teardown
+    # 1. setup
+    # 1. test_my_method2
+    # 1. cleanup
+    # 1. teardown
+    # 1. shutdown
+    #
+    # You can set an attribute to each test.
+    #
+    # Example:
+    #
+    #     class TestMyClass < Test::Unit::TestCase
+    #       attribute :speed, :fast
+    #       def test_my_fast_method
+    #         # You can get the attribute via `self[]`
+    #         self[:speed] # => :fast
+    #         ...
+    #       end
+    #
+    #       attribute :speed, :slow
+    #       def test_my_slow_method
+    #         self[:speed] # => :slow
+    #         ...
+    #       end
+    #     end
     class TestCase
       include Attribute
       include Fixture
@@ -228,7 +249,11 @@ module Test
         # Returns the current test order. This returns
         # +:alphabetic+ by default.
         def test_order
-          @@test_orders[self] || AVAILABLE_ORDERS.first
+          ancestors.each do |ancestor|
+            order = @@test_orders[ancestor]
+            return order if order
+          end
+          AVAILABLE_ORDERS.first
         end
 
         # Sets the current test order.
@@ -314,7 +339,7 @@ module Test
         # the same in meaning:
         #
         # Standard:
-        #   class TestParent < Test::UnitTestCase
+        #   class TestParent < Test::Unit::TestCase
         #     class TestChild < self
         #       def test_in_child
         #       end
@@ -322,7 +347,7 @@ module Test
         #   end
         #
         # Syntax sugar:
-        #   class TestParent < Test::UnitTestCase
+        #   class TestParent < Test::Unit::TestCase
         #     sub_test_case("TestChild") do
         #       def test_in_child
         #       end
@@ -365,6 +390,11 @@ module Test
         # @option query [String] :method_name (nil)
         #   the method name for a test.
         def test_defined?(query)
+          locations = find_locations(query)
+          not locations.empty?
+        end
+
+        def find_locations(query)
           query_path = query[:path]
           query_line = query[:line]
           query_method_name = query[:method_name]
@@ -377,19 +407,20 @@ module Test
             available_location = available_locations.find do |location|
               query_line >= location[:line]
             end
-            return false if available_location.nil?
-            return false if available_location[:test_case] != self
+            return [] if available_location.nil?
+            return [] if available_location[:test_case] != self
             available_locations = [available_location]
           end
           if query_method_name
             available_location = available_locations.find do |location|
-              query_method_name == location[:method_name]
+              location[:test_case] == self and
+                query_method_name == location[:method_name]
             end
-            return false if available_location.nil?
+            return [] if available_location.nil?
             available_locations = [available_location]
           end
 
-          not available_locations.empty?
+          available_locations
         end
 
         private
@@ -441,9 +472,7 @@ module Test
       def valid? # :nodoc:
         return false unless respond_to?(@method_name)
         test_method = method(@method_name)
-        if @internal_data.have_test_data?
-          return false unless test_method.arity == 1
-        else
+        unless @internal_data.have_test_data?
           return false unless test_method.arity <= 0
         end
         owner = Util::MethodOwnerFinder.find(self, @method_name)
@@ -652,10 +681,19 @@ module Test
       # Returns a human-readable name for the specific test that
       # this instance of TestCase represents.
       def name
+        "#{local_name}(#{self.class.name})"
+      end
+
+      # Returns a human-readable name for the specific test that this
+      # instance of TestCase represents.
+      #
+      # `#local_name` doesn't include class name. `#name` includes
+      # class name.
+      def local_name
         if @internal_data.have_test_data?
-          "#{@method_name}[#{data_label}](#{self.class.name})"
+          "#{@method_name}[#{data_label}]"
         else
-          "#{@method_name}(#{self.class.name})"
+          @method_name.to_s
         end
       end
 
@@ -733,13 +771,24 @@ module Test
       end
 
       def run_test
+        signature = "#{self.class}\##{@method_name}"
         redefined_info = self[:redefined]
         if redefined_info
-          notify("#{self.class}\##{@method_name} was redefined",
+          notify("<#{signature}> was redefined",
                  :backtrace => redefined_info[:backtrace])
         end
         if @internal_data.have_test_data?
-          __send__(@method_name, @internal_data.test_data)
+          test_method = method(@method_name)
+          if test_method.arity == 1 or test_method.arity < 0
+            __send__(@method_name, @internal_data.test_data)
+          else
+            locations = self.class.find_locations(:method_name => @method_name)
+            backtrace = locations.collect do |location|
+              "#{location[:path]}:#{location[:line]}"
+            end
+            notify("<#{signature}> misses a parameter to take test data",
+                   :backtrace => backtrace)
+          end
         else
           __send__(@method_name)
         end
