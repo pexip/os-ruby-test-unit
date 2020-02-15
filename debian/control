@@ -13,7 +13,7 @@ Vcs-Browser: https://anonscm.debian.org/cgit/pkg-ruby-extras/ruby-test-unit.git
 Homepage: http://test-unit.github.io/
 Testsuite: autopkgtest-pkg-ruby
 XS-Ruby-Versions: all
-XS-Pexip-Upstream: http://ftp.debian.org/debian/ stretch
+XS-Pexip-Upstream: http://ftp.debian.org/debian/ buster
 
 Package: ruby-test-unit
 Architecture: all
