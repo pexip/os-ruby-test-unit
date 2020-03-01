@@ -24,13 +24,13 @@ License: BSD-2-clause or Ruby
 
 License: BSD-2-clause
  Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions are met: 
+ modification, are permitted provided that the following conditions are met:
  .
  1. Redistributions of source code must retain the above copyright notice, this
-    list of conditions and the following disclaimer. 
+    list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright notice,
     this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution. 
+    and/or other materials provided with the distribution.
  .
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -61,7 +61,7 @@ License: PSF
  alone or in any derivative version, provided, however, that PSF's
  License Agreement and PSF's notice of copyright, i.e., "Copyright (c)
  2001, 2002, 2003, 2004, 2005, 2006 Python Software Foundation; All Rights
- Reserved" are retained in Python alone or in any derivative version 
+ Reserved" are retained in Python alone or in any derivative version
  prepared by Licensee.
  .
  3. In the event Licensee prepares a derivative work that is based on
@@ -141,9 +141,9 @@ License: Ruby
       For the list of those files and their copying conditions, see the
       file LEGAL.
  .
-   5. The scripts and library files supplied as input to or produced as 
+   5. The scripts and library files supplied as input to or produced as
       output from the software do not automatically fall under the
-      copyright of the software, but belong to whomever generated them, 
+      copyright of the software, but belong to whomever generated them,
       and may be sold commercially, and may be aggregated with this
       software.
  .

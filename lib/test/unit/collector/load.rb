@@ -131,6 +131,8 @@ module Test
           return yield if path.nil?
 
           path = path.to_s
+          return yield if $LOAD_PATH.index(path)
+
           begin
             $LOAD_PATH.unshift(path)
             yield
@@ -164,11 +166,11 @@ module Test
           return if @require_failed_infos.empty?
 
           require_failed_infos = @require_failed_infos
-          require_failed_omissions = Class.new(Test::Unit::TestCase)
-          require_failed_omissions.class_eval do
+          require_failed_errors = Class.new(Test::Unit::TestCase)
+          require_failed_errors.class_eval do
             class << self
               def name
-                "RequireFailedOmissions"
+                "RequireFailedErrors"
               end
             end
 
@@ -178,21 +180,18 @@ module Test
               normalized_path = normalized_path.gsub(/\A_+/, '')
               exception = info[:exception]
               define_method("test_require_#{normalized_path}") do
-                @require_failed_exception = exception
-                omit("failed to load: <#{path}>: <#{exception.message}>")
+                raise(exception.class,
+                      "failed to load <#{path}>: #{exception.message}",
+                      exception.backtrace)
               end
             end
 
             def priority
               100
             end
-
-            def filter_backtrace(location)
-              super(@require_failed_exception.backtrace)
-            end
           end
 
-          add_suite(test_suites, require_failed_omissions.suite)
+          add_suite(test_suites, require_failed_errors.suite)
         end
       end
     end

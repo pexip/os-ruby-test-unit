@@ -3,7 +3,7 @@
 # Author:: Nathaniel Talbott.
 # Copyright::
 #   * Copyright (c) 2000-2003 Nathaniel Talbott. All rights reserved.
-#   * Copyright (c) 2008-2013 Kouhei Sutou <kou@clear-code.com>
+#   * Copyright (c) 2008-2017 Kouhei Sutou <kou@clear-code.com>
 # License:: Ruby license.
 
 begin
@@ -47,6 +47,8 @@ module Test
             @progress_row_max ||= guess_progress_row_max
             @show_detail_immediately = @options[:show_detail_immediately]
             @show_detail_immediately = true if @show_detail_immediately.nil?
+            @reverse_output = @options[:reverse_output]
+            @reverse_output = @output.tty? if @reverse_output.nil?
             @already_outputted = false
             @indent = 0
             @top_level = true
@@ -110,8 +112,10 @@ module Test
           end
 
           def finished(elapsed_time)
-            nl if output?(NORMAL) and !output?(VERBOSE)
-            output_faults unless @show_detail_immediately
+            unless @show_detail_immediately
+              nl if output?(NORMAL) and !output?(VERBOSE)
+              output_faults
+            end
             nl(PROGRESS_ONLY)
             change_output_level(IMPORTANT_FAULTS_ONLY) do
               output_statistics(elapsed_time)
@@ -178,22 +182,31 @@ module Test
 
           def output_fault_in_detail(fault)
             if fault.is_a?(Failure) and
-                fault.inspected_expected and fault.inspected_actual
-              output_single("#{fault.label}: ")
-              output(fault.test_name, fault_color(fault))
-              output_fault_backtrace(fault)
-              output_failure_message(fault)
+                fault.inspected_expected and
+                fault.inspected_actual
+              if @reverse_output
+                output_fault_backtrace(fault)
+                output_failure_message(fault)
+                output_single("#{fault.label}: ")
+                output(fault.test_name, fault_color(fault))
+              else
+                output_single("#{fault.label}: ")
+                output(fault.test_name, fault_color(fault))
+                output_fault_backtrace(fault)
+                output_failure_message(fault)
+              end
             else
-              if fault.is_a?(Error)
+              if @reverse_output
+                output_fault_backtrace(fault)
                 output_single("#{fault.label}: ")
                 output_single(fault.test_name, fault_color(fault))
                 output_fault_message(fault)
               else
-                output_single(fault.label, fault_color(fault))
+                output_single("#{fault.label}: ")
+                output_single(fault.test_name, fault_color(fault))
                 output_fault_message(fault)
-                output(fault.test_name)
+                output_fault_backtrace(fault)
               end
-              output_fault_backtrace(fault)
             end
           end
 
@@ -212,26 +225,47 @@ module Test
           end
 
           def output_fault_backtrace(fault)
-            snippet_is_shown = false
             detector = FaultLocationDetector.new(fault, @code_snippet_fetcher)
             backtrace = fault.location
             # workaround for test-spec. :<
             # see also GitHub:#22
             backtrace ||= []
+
+            code_snippet_backtrace_index = nil
+            code_snippet_lines = nil
             backtrace.each_with_index do |entry, i|
-              output(entry)
-              next if snippet_is_shown
               next unless detector.target?(entry)
               file, line_number, = detector.split_backtrace_entry(entry)
-              snippet_is_shown = output_code_snippet(file, line_number,
-                                                     fault_color(fault))
+              lines = fetch_code_snippet(file, line_number)
+              unless lines.empty?
+                code_snippet_backtrace_index = i
+                code_snippet_lines = lines
+                break
+              end
+            end
+
+            if @reverse_output
+              backtrace.each_with_index.reverse_each do |entry, i|
+                if i == code_snippet_backtrace_index
+                  output_code_snippet(code_snippet_lines, fault_color(fault))
+                end
+                output(entry)
+              end
+            else
+              backtrace.each_with_index do |entry, i|
+                output(entry)
+                if i == code_snippet_backtrace_index
+                  output_code_snippet(code_snippet_lines, fault_color(fault))
+                end
+              end
             end
           end
 
-          def output_code_snippet(file, line_number, target_line_color=nil)
-            lines = @code_snippet_fetcher.fetch(file, line_number)
-            return false if lines.empty?
+          def fetch_code_snippet(file, line_number)
+            @code_snippet_fetcher.fetch(file, line_number)
+          end
 
+          def output_code_snippet(lines, target_line_color=nil)
             max_n = lines.collect {|n, line, attributes| n}.max
             digits = (Math.log10(max_n) + 1).truncate
             lines.each do |n, line, attributes|
@@ -245,7 +279,6 @@ module Test
               output("  %2s %*d: %s" % [current_line_mark, digits, n, line],
                      line_color)
             end
-            true
           end
 
           def output_failure_message(failure)
@@ -303,9 +336,17 @@ module Test
           end
 
           def output_fault_in_short(fault)
-            output_single(fault.message, fault_color(fault))
-            output(" [#{fault.test_name}]")
-            output(fault.location.first)
+            if @reverse_output
+              output(fault.location.first)
+              output_single("#{fault.label}: ")
+              output_single(fault.message, fault_color(fault))
+              output(" [#{fault.test_name}]")
+            else
+              output_single("#{fault.label}: ")
+              output_single(fault.message, fault_color(fault))
+              output(" [#{fault.test_name}]")
+              output(fault.location.first)
+            end
           end
 
           def format_fault(fault)
@@ -330,24 +371,34 @@ module Test
           end
 
           def output_summary_marker
-            term_width = guess_term_width
-            if term_width.zero?
-              marker_width = 6
+            if @progress_row_max > 0
+              output("-" * @progress_row_max, summary_marker_color)
             else
-              marker_width = term_width
+              nl
             end
-            output("-" * marker_width, summary_marker_color)
           end
 
           def test_started(test)
             return unless output?(VERBOSE)
 
-            name = test.name.sub(/\(.+?\)\z/, '')
-            right_space = 8 * 2
+            tab_width = 8
+            name = test.local_name
+            separator = ":"
+            left_used = indent.size + name.size + separator.size
+            right_space = tab_width * 2
             left_space = @progress_row_max - right_space
-            left_space = left_space - indent.size - name.size
-            tab_stop = "\t" * ([left_space - 1, 0].max / 8)
-            output_single("#{indent}#{name}:#{tab_stop}", nil, VERBOSE)
+            if (left_used % tab_width).zero?
+              left_space -= left_used
+              n_tabs = 0
+            else
+              left_space -= ((left_used / tab_width) + 1) * tab_width
+              n_tabs = 1
+            end
+            n_tabs += [left_space, 0].max / tab_width
+            tab_stop = "\t" * n_tabs
+            output_single("#{indent}#{name}#{separator}#{tab_stop}",
+                          nil,
+                          VERBOSE)
             @test_start = Time.now
           end
 
@@ -473,8 +524,12 @@ module Test
             fault_class.name.split(/::/).last.downcase
           end
 
+          def fault_class_color(fault_class)
+            color(fault_class_color_name(fault_class))
+          end
+
           def fault_color(fault)
-            color(fault_class_color_name(fault.class))
+            fault_class_color(fault.class)
           end
 
           def fault_marker_color(fault)
@@ -490,6 +545,8 @@ module Test
             return true if windows? and ruby_2_0_or_later?
             case ENV["TERM"]
             when /(?:term|screen)(?:-(?:256)?color)?\z/
+              true
+            when /\Arxvt/
               true
             else
               return true if ENV["EMACS"] == "t"
